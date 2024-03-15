@@ -30,8 +30,9 @@ import org.springframework.lang.Nullable;
  * that allows optionally for type safety on reads. It also allows for dirty checking by
  * setting a 'dirty' flag whenever any put is called.
  * <p>
- * Note that putting <code>null</code> value is equivalent to removing the entry for the
- * given key.
+ * Non-transient entries should be serializable, otherwise a custom serializer should be
+ * used. Note that putting <code>null</code> value is equivalent to removing the entry for
+ * the given key.
  *
  * @author Lucas Ward
  * @author Douglas Kaminsky
@@ -263,6 +264,7 @@ public class ExecutionContext implements Serializable {
 	 * @param <V> Type of returned value
 	 * @return The value of given type represented by the given key or {@code null} if the
 	 * key is not present
+	 * @since 5.1
 	 */
 	@Nullable
 	public <V> V get(String key, Class<V> type) {
@@ -282,6 +284,7 @@ public class ExecutionContext implements Serializable {
 	 * @param <V> Type of returned value
 	 * @return The value of given type represented by the given key or the default value
 	 * if the key is not present
+	 * @since 5.1
 	 */
 	@Nullable
 	public <V> V get(String key, Class<V> type, @Nullable V defaultValue) {
@@ -344,6 +347,7 @@ public class ExecutionContext implements Serializable {
 	 * Returns the internal map as read-only.
 	 * @return An unmodifiable map containing all contents.
 	 * @see java.util.Map
+	 * @since 5.1
 	 */
 	public Map<String, Object> toMap() {
 		return Collections.unmodifiableMap(this.map);
@@ -381,11 +385,6 @@ public class ExecutionContext implements Serializable {
 		return this.map.containsValue(value);
 	}
 
-	/*
-	 * (non-Javadoc)
-	 *
-	 * @see java.lang.Object#equals(java.lang.Object)
-	 */
 	@Override
 	public boolean equals(Object obj) {
 		if (!(obj instanceof ExecutionContext rhs)) {
@@ -397,21 +396,11 @@ public class ExecutionContext implements Serializable {
 		return this.entrySet().equals(rhs.entrySet());
 	}
 
-	/*
-	 * (non-Javadoc)
-	 *
-	 * @see java.lang.Object#hashCode()
-	 */
 	@Override
 	public int hashCode() {
 		return this.map.hashCode();
 	}
 
-	/*
-	 * (non-Javadoc)
-	 *
-	 * @see java.lang.Object#toString()
-	 */
 	@Override
 	public String toString() {
 		return this.map.toString();

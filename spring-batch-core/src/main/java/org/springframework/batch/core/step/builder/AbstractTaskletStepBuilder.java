@@ -49,6 +49,7 @@ import org.springframework.transaction.interceptor.TransactionAttribute;
  * @author Dave Syer
  * @author Michael Minella
  * @author Mahmoud Ben Hassine
+ * @author Ilpyo Yang
  * @since 2.2
  * @param <B> the type of builder represented
  */
@@ -72,6 +73,23 @@ public abstract class AbstractTaskletStepBuilder<B extends AbstractTaskletStepBu
 
 	public AbstractTaskletStepBuilder(StepBuilderHelper<?> parent) {
 		super(parent);
+	}
+
+	/**
+	 * Create a new builder initialized with any properties in the parent. The parent is
+	 * copied, so it can be re-used.
+	 * @param parent a parent helper containing common step properties
+	 */
+	public AbstractTaskletStepBuilder(AbstractTaskletStepBuilder<?> parent) {
+		super(parent);
+		this.chunkListeners = parent.chunkListeners;
+		this.stepOperations = parent.stepOperations;
+		this.transactionManager = parent.transactionManager;
+		this.transactionAttribute = parent.transactionAttribute;
+		this.streams.addAll(parent.streams);
+		this.exceptionHandler = parent.exceptionHandler;
+		this.throttleLimit = parent.throttleLimit;
+		this.taskExecutor = parent.taskExecutor;
 	}
 
 	protected abstract Tasklet createTasklet();
@@ -199,9 +217,10 @@ public abstract class AbstractTaskletStepBuilder<B extends AbstractTaskletStepBu
 	 * in the job repository for this step.
 	 * @param throttleLimit maximum number of concurrent tasklet executions allowed
 	 * @return this for fluent chaining
-	 * @deprecated since 5.0, scheduled for removal in 6.0. Use a pooled
-	 * {@link TaskExecutor} implementation with a limited capacity of its task queue
-	 * instead.
+	 * @deprecated with no replacement since 5.0, scheduled for removal in 6.0. Use a
+	 * custom {@link RepeatOperations} implementation (based on a {@link TaskExecutor}
+	 * with a bounded task queue) and set it on the step with
+	 * {@link #stepOperations(RepeatOperations)}.
 	 */
 	@Deprecated(since = "5.0", forRemoval = true)
 	public B throttleLimit(int throttleLimit) {

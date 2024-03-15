@@ -144,6 +144,15 @@ class FlowJobBuilderTests {
 	}
 
 	@Test
+	void testBuildSingleFlowAddingStepsViaNext() {
+		Flow flow = new FlowBuilder<Flow>("subflow").next(step1).next(step2).build();
+		FlowJobBuilder builder = new JobBuilder("flow", jobRepository).start(flow).end().preventRestart();
+		builder.build().execute(execution);
+		assertEquals(BatchStatus.COMPLETED, execution.getStatus());
+		assertEquals(2, execution.getStepExecutions().size());
+	}
+
+	@Test
 	void testBuildOverTwoLines() {
 		FlowJobBuilder builder = new JobBuilder("flow", jobRepository).start(step1).on("COMPLETED").to(step2).end();
 		builder.preventRestart();
@@ -251,6 +260,56 @@ class FlowJobBuilderTests {
 		builder.build().preventRestart().build().execute(execution);
 		assertEquals(BatchStatus.COMPLETED, execution.getStatus());
 		assertEquals(1, execution.getStepExecutions().size());
+	}
+
+	@Test
+	void testBuildWithDeciderPriorityOnWildcardCount() {
+		JobExecutionDecider decider = (jobExecution, stepExecution) -> new FlowExecutionStatus("COMPLETED_PARTIALLY");
+		JobFlowBuilder builder = new JobBuilder("flow_priority", jobRepository).start(decider);
+		builder.on("**").end();
+		builder.on("*").fail();
+		builder.build().preventRestart().build().execute(execution);
+		assertEquals(BatchStatus.COMPLETED, execution.getStatus());
+	}
+
+	@Test
+	void testBuildWithDeciderPriorityWithEqualWildcard() {
+		JobExecutionDecider decider = (jobExecution, stepExecution) -> new FlowExecutionStatus("COMPLETED_PARTIALLY");
+		JobFlowBuilder builder = new JobBuilder("flow_priority", jobRepository).start(decider);
+		builder.on("COMPLETED*").end();
+		builder.on("*").fail();
+		builder.build().preventRestart().build().execute(execution);
+		assertEquals(BatchStatus.COMPLETED, execution.getStatus());
+	}
+
+	@Test
+	void testBuildWithDeciderPriority() {
+		JobExecutionDecider decider = (jobExecution, stepExecution) -> new FlowExecutionStatus("COMPLETED_PARTIALLY");
+		JobFlowBuilder builder = new JobBuilder("flow_priority", jobRepository).start(decider);
+		builder.on("COMPLETED_PARTIALLY").end();
+		builder.on("COMPLETED*").fail();
+		builder.build().preventRestart().build().execute(execution);
+		assertEquals(BatchStatus.COMPLETED, execution.getStatus());
+	}
+
+	@Test
+	void testBuildWithWildcardDeciderPriority() {
+		JobExecutionDecider decider = (jobExecution, stepExecution) -> new FlowExecutionStatus("COMPLETED_PARTIALLY");
+		JobFlowBuilder builder = new JobBuilder("flow_priority", jobRepository).start(decider);
+		builder.on("COMPLETED_?ARTIALLY").end();
+		builder.on("COMPLETED_*ARTIALLY").fail();
+		builder.build().preventRestart().build().execute(execution);
+		assertEquals(BatchStatus.COMPLETED, execution.getStatus());
+	}
+
+	@Test
+	void testBuildWithDeciderPrioritySubstringAndWildcard() {
+		JobExecutionDecider decider = (jobExecution, stepExecution) -> new FlowExecutionStatus("CONTINUABLE");
+		JobFlowBuilder builder = new JobBuilder("flow_priority", jobRepository).start(decider);
+		builder.on("CONTINUABLE").end();
+		builder.on("CONTIN*").fail();
+		builder.build().preventRestart().build().execute(execution);
+		assertEquals(BatchStatus.COMPLETED, execution.getStatus());
 	}
 
 	@Test

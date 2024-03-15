@@ -190,6 +190,7 @@ public class RemoteChunkingManagerStepBuilder<I, O> extends FaultTolerantStepBui
 	 * @return the configured manager step
 	 * @see RemoteChunkHandlerFactoryBean
 	 */
+	@Override
 	public TaskletStep build() {
 		Assert.notNull(this.inputChannel, "An InputChannel must be provided");
 		Assert.state(this.outputChannel == null || this.messagingTemplate == null,
@@ -227,7 +228,16 @@ public class RemoteChunkingManagerStepBuilder<I, O> extends FaultTolerantStepBui
 		return this;
 	}
 
+	/**
+	 * Set the job repository
+	 * @param jobRepository the repository to set
+	 * @return this to enable fluent chaining
+	 * @deprecated use
+	 * {@link RemoteChunkingManagerStepBuilder#RemoteChunkingManagerStepBuilder(String, JobRepository)}
+	 */
 	@Override
+	@SuppressWarnings("removal")
+	@Deprecated(since = "5.1", forRemoval = true)
 	public RemoteChunkingManagerStepBuilder<I, O> repository(JobRepository jobRepository) {
 		super.repository(jobRepository);
 		return this;

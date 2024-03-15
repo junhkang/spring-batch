@@ -122,7 +122,7 @@ public class FileDeletingTasklet implements Tasklet, InitializingBean {
     public RepeatStatus execute(StepContribution contribution,
                                 ChunkContext chunkContext) throws Exception {
         File dir = directory.getFile();
-        Assert.state(dir.isDirectory());
+        Assert.state(dir.isDirectory(), "The resource must be a directory");
 
         File[] files = dir.listFiles();
         for (int i = 0; i < files.length; i++) {
@@ -140,7 +140,7 @@ public class FileDeletingTasklet implements Tasklet, InitializingBean {
     }
 
     public void afterPropertiesSet() throws Exception {
-        Assert.state(directory != null, "directory must be set");
+        Assert.state(directory != null, "Directory must be set");
     }
 }
 ----
@@ -160,9 +160,9 @@ The following example shows how to reference the `tasklet` from the `step` in Ja
 [source, java]
 ----
 @Bean
-public Job taskletJob(JobRepository jobRepository) {
+public Job taskletJob(JobRepository jobRepository, Step deleteFilesInDir) {
 	return new JobBuilder("taskletJob", jobRepository)
-				.start(deleteFilesInDir())
+				.start(deleteFilesInDir)
 				.build();
 }
 

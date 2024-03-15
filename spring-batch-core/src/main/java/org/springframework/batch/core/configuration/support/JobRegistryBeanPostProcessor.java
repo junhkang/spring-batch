@@ -1,5 +1,5 @@
 /*
- * Copyright 2006-2023 the original author or authors.
+ * Copyright 2006-2024 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -40,6 +40,10 @@ import org.springframework.util.Assert;
  * {@link JobRegistry}. Include a bean of this type along with your job configuration and
  * use the same {@link JobRegistry} as a {@link JobLocator} when you need to locate a
  * {@link Job} to launch.
+ * <p>
+ * An alternative to this class is {@link JobRegistrySmartInitializingSingleton}, which is
+ * recommended in cases where this class may cause early bean initializations. You must
+ * include at most one of either of them as a bean.
  *
  * @author Dave Syer
  * @author Mahmoud Ben Hassine
@@ -79,12 +83,6 @@ public class JobRegistryBeanPostProcessor
 		this.jobRegistry = jobRegistry;
 	}
 
-	/*
-	 * (non-Javadoc)
-	 *
-	 * @see org.springframework.beans.factory.BeanFactoryAware#setBeanFactory(org
-	 * .springframework.beans.factory.BeanFactory)
-	 */
 	@Override
 	public void setBeanFactory(BeanFactory beanFactory) throws BeansException {
 		if (beanFactory instanceof DefaultListableBeanFactory) {

@@ -1,5 +1,5 @@
 /*
- * Copyright 2006-2023 the original author or authors.
+ * Copyright 2006-2024 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -38,9 +38,9 @@ import java.util.Objects;
  */
 public class Chunk<W> implements Iterable<W>, Serializable {
 
-	private List<W> items = new ArrayList<>();
+	private final List<W> items = new ArrayList<>();
 
-	private List<SkipWrapper<W>> skips = new ArrayList<>();
+	private final List<SkipWrapper<W>> skips = new ArrayList<>();
 
 	private final List<Exception> errors = new ArrayList<>();
 
@@ -67,10 +67,10 @@ public class Chunk<W> implements Iterable<W>, Serializable {
 	public Chunk(List<? extends W> items, List<SkipWrapper<W>> skips) {
 		super();
 		if (items != null) {
-			this.items = new ArrayList<>(items);
+			this.items.addAll(items);
 		}
 		if (skips != null) {
-			this.skips = new ArrayList<>(skips);
+			this.skips.addAll(skips);
 		}
 	}
 
@@ -103,7 +103,7 @@ public class Chunk<W> implements Iterable<W>, Serializable {
 	 * @return a copy of the items to be processed as an unmodifiable list
 	 */
 	public List<W> getItems() {
-		return List.copyOf(items);
+		return Collections.unmodifiableList(items);
 	}
 
 	/**
@@ -154,6 +154,13 @@ public class Chunk<W> implements Iterable<W>, Serializable {
 
 	/**
 	 * Flag to indicate if the source data is exhausted.
+	 *
+	 * <p>
+	 * Note: This may return false if the last chunk has the same number of items as the
+	 * configured commit interval. Consequently, in such cases,there will be a last empty
+	 * chunk that won't be processed. It is recommended to consider this behavior when
+	 * utilizing this method.
+	 * </p>
 	 * @return true if there is no more data to process
 	 */
 	public boolean isEnd() {
@@ -201,11 +208,6 @@ public class Chunk<W> implements Iterable<W>, Serializable {
 		this.userData = userData;
 	}
 
-	/*
-	 * (non-Javadoc)
-	 *
-	 * @see java.lang.Object#toString()
-	 */
 	@Override
 	public String toString() {
 		return String.format("[items=%s, skips=%s]", items, skips);
